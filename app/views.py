@@ -44,7 +44,7 @@ class UserLoginAPIView(APIView):
             login(request, user)
             return Response({'message': 'User logged in successfully'})
 
-        return Response({'message': 'User logged in successfully'})
+        return Response({'message': 'User logged in failed'})
 
 class UserLogoutAPIView(APIView):
     def dispatch(self, request, *args, **kwargs):
