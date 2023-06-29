@@ -28,7 +28,7 @@ class UserRegistrationAPIView(APIView):
             user = form.save()
             return Response({'message': 'User registered successfully'})
         else:
-            return Response(form.erros, status=400)
+            return Response(form.errors, status=400)
 
 class UserLoginAPIView(APIView):
     def dispatch(self, request, *args, **kwargs):
