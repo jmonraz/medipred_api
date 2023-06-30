@@ -4,6 +4,7 @@ from rest_framework.response import Response
 from django.contrib.auth.forms import UserCreationForm
 from django import forms
 from django.contrib.auth import authenticate, login, logout
+from django.forms.models import model_to_dict
 # Create your views here.
 
 class CustomUserCreationForm(UserCreationForm):
@@ -42,7 +43,8 @@ class UserLoginAPIView(APIView):
 
         if user is not None:
             login(request, user)
-            return Response({'message': 'User logged in successfully'})
+            user_dict = model_to_dict(user)
+            return Response({'message': 'User logged in successfully', 'user': user_dict})
 
         return Response({'message': 'User logged in failed'})
 
