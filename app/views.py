@@ -43,7 +43,8 @@ class UserLoginAPIView(APIView):
 
         if user is not None:
             login(request, user)
-            user_dict = model_to_dict(user)
+            fields_to_include = ['username', 'email', 'first_name', 'last_name']
+            user_dict = model_to_dict(user, fields=fields_to_include)
             return Response({'message': 'User logged in successfully', 'user': user_dict})
 
         return Response({'message': 'User logged in failed'})
@@ -54,4 +55,4 @@ class UserLogoutAPIView(APIView):
     
     def post(self, request):
         logout(request)
-        return({'message': 'User logged out successfully'})
+        return Response({'message': 'User logged out successfully'})
