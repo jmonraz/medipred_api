@@ -139,6 +139,7 @@ class GetAllPatients(APIView):
         for patient in patients:
 
             patient_data = {
+                'id': patient.id,
                 'first_name': patient.first_name,
                 'middle_name': patient.middle_name,
                 'last_name': patient.last_name,
