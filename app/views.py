@@ -75,7 +75,7 @@ class CreatePatientAPIView(APIView):
             contact_phone = patient_data.get('contact_phone')
             date_of_birth = patient_data.get('date_of_birth')
             height = patient_data.get('height')
-            weight = patient_data.get('weigth')
+            weight = patient_data.get('weight')
             blood_group = patient_data.get('blood_group')
 
             address_1 = address_data.get('address_1')
@@ -129,3 +129,25 @@ class CreatePatientAPIView(APIView):
         except Exception as e:
             return Response({'message': 'Error', 'error': str(e)}, status=500)
         
+class GetAllPatients(APIView):
+    def dispatch(self, request, *args, **kwargs):
+        return super().dispatch(request, *args, **kwargs)
+
+    def get(self, request):
+        patients = Patient.objects.all()
+        patient_list = []
+        for patient in patients:
+
+            patient_data = {
+                'first_name': patient.first_name,
+                'middle_name': patient.middle_name,
+                'last_name': patient.last_name,
+                'contact_email': patient.contact_email,
+                'contact_phone': patient.contact_phone,
+                'date_of_birth': patient.date_of_birth,
+                'height': patient.height,
+                'weight': patient.weight,
+                'blood_group': patient.blood_group
+            }
+            patient_list.append(patient_data)
+        return Response({'patients': patient_list})

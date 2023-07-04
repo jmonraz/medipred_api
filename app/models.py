@@ -22,3 +22,4 @@ class Patient(models.Model):
     weight = models.DecimalField(max_digits=5, decimal_places=2, null=True)
     blood_group = models.CharField(max_length=10, null=True)
     address = models.ForeignKey(Address, on_delete=models.SET_NULL, null=True)
+    registration_date = models.DateTimeField(auto_now_add=True, null=True)
