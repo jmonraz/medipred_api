@@ -170,6 +170,7 @@ class GetDiabetesAnalysis(APIView):
         analysis_list = []
 
         for a in analysis:
+            formatted_datetime = a.last_checked.strftime('%Y-%m-%d %H:%M:%S')
             analysis_data = {
                 'id': a.patient.id,
                 'first_name': a.patient.first_name,
@@ -181,6 +182,7 @@ class GetDiabetesAnalysis(APIView):
                 'insulin': a.insulin,
                 'bmi': a.bmi,
                 'outcome': a.outcome,
+                'last_checked': formatted_datetime,
             }
             analysis_list.append(analysis_data)
         return Response({"data": analysis_list})
