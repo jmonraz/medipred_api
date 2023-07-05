@@ -33,3 +33,4 @@ class DiabetesAnalysis(models.Model):
     bmi = models.IntegerField(null=False)
     patient = models.ForeignKey(Patient, on_delete=models.SET_NULL, null=True)
     outcome = models.IntegerField(null=True)
+    last_checked = models.DateTimeField(auto_now_add=True, null=True)
