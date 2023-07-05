@@ -5,7 +5,8 @@ from django.contrib.auth.forms import UserCreationForm
 from django import forms
 from django.contrib.auth import authenticate, login, logout
 from django.forms.models import model_to_dict
-from .models import Address, Patient
+from .models import Address, Patient, DiabetesAnalysis
+from datetime import date, datetime
 # Create your views here.
 
 class CustomUserCreationForm(UserCreationForm):
@@ -74,6 +75,8 @@ class CreatePatientAPIView(APIView):
             contact_email = patient_data.get('contact_email')
             contact_phone = patient_data.get('contact_phone')
             date_of_birth = patient_data.get('date_of_birth')
+            dob = datetime.strptime(date_of_birth, "%Y-%m-%d").date()
+            age = calculate_age(dob)
             height = patient_data.get('height')
             weight = patient_data.get('weight')
             blood_group = patient_data.get('blood_group')
@@ -119,6 +122,7 @@ class CreatePatientAPIView(APIView):
                 'height': height,
                 'weight': weight,
                 'blood_group': blood_group,
+                'age': age,
                 'address': address
             }
 
@@ -152,3 +156,37 @@ class GetAllPatients(APIView):
             }
             patient_list.append(patient_data)
         return Response({'patients': patient_list})
+    
+class GetDiabetesAnalysis(APIView):
+    def dispatch(self, request, *args, **kwargs):
+        return super().dispatch(request, *args, **kwargs)
+    
+    def get(self, request):
+        analysis = DiabetesAnalysis.objects.all()
+        analysis_list = []
+
+        for a in analysis:
+            analysis_data = {
+                'id': a.patient.id,
+                'first_name': a.patient.first_name,
+                'last_name': a.patient.last_name,
+                'gender': a.patient.gender,
+                'age': a.patient.age,
+                'glucose': a.glucose,
+                'blood_pressure': a.blood_pressure,
+                'insulin': a.insulin,
+                'bmi': a.bmi,
+                'outcome': a.outcome,
+            }
+            analysis_list.append(analysis_data)
+        return Response({"data": analysis_list})
+
+def calculate_age(date_of_birth):
+    today = date.today()
+    age = today.year - date_of_birth.year
+
+    # check if the birthday has already occurred this year
+    if today.month < date_of_birth.month or (today.month == date_of_birth.month) and today.day < date_of_birth.day:
+        age -=1
+    
+    return age
