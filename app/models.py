@@ -19,7 +19,7 @@ class Patient(models.Model):
     contact_phone = models.CharField(max_length=50, null=False)
     date_of_birth = models.DateField(null=False)
     age = models.IntegerField(null=True)
-    gender = models.IntegerField(null=True)
+    gender = models.CharField(max_length=10 ,null=True)
     height = models.DecimalField(max_digits=5, decimal_places=2, null=True)
     weight = models.DecimalField(max_digits=5, decimal_places=2, null=True)
     blood_group = models.CharField(max_length=10, null=True)

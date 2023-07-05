@@ -77,6 +77,7 @@ class CreatePatientAPIView(APIView):
             date_of_birth = patient_data.get('date_of_birth')
             dob = datetime.strptime(date_of_birth, "%Y-%m-%d").date()
             age = calculate_age(dob)
+            gender = patient_data.get('gender')
             height = patient_data.get('height')
             weight = patient_data.get('weight')
             blood_group = patient_data.get('blood_group')
@@ -123,6 +124,7 @@ class CreatePatientAPIView(APIView):
                 'weight': weight,
                 'blood_group': blood_group,
                 'age': age,
+                'gender': gender,
                 'address': address
             }
 
@@ -152,7 +154,9 @@ class GetAllPatients(APIView):
                 'date_of_birth': patient.date_of_birth,
                 'height': patient.height,
                 'weight': patient.weight,
-                'blood_group': patient.blood_group
+                'blood_group': patient.blood_group,
+                'age': patient.age,
+                'gender': patient.gender,
             }
             patient_list.append(patient_data)
         return Response({'patients': patient_list})
