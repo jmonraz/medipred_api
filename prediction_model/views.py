@@ -14,7 +14,7 @@ class ModelDiabetesPrediction(APIView):
         patient_data = request.data.get('patient')
         diabetes_data = request.data.get('data')
 
-        preprocessed_data = preprocess_data(diabetes_data)
+        preprocessed_data = preprocess_data(diabetes_data, patient_data.get('id'))
         # load the trained model
         model = joblib.load('./ml_model/diabetes_model.pk1')
 
@@ -41,12 +41,13 @@ class ModelDiabetesPrediction(APIView):
         except Exception as e:
             return Response({'error': str(e)}, status=500)
 
-def preprocess_data(data):
+def preprocess_data(data, patient_id):
+    patient = Patient.objects.get(id=patient_id)
     glucose = data['glucose']
     blood_pressure = data['blood_pressure']
     insulin = data['insulin']
     bmi = data['bmi']
-    age = data['age']
+    age = patient.age
 
     array_2d = np.array([[glucose, blood_pressure, insulin, bmi, age]])
 

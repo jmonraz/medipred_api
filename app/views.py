@@ -7,7 +7,9 @@ from django.contrib.auth import authenticate, login, logout
 from django.forms.models import model_to_dict
 from .models import Address, Patient, DiabetesAnalysis
 from datetime import date, datetime
+from django.core.exceptions import ValidationError
 # Create your views here.
+
 
 class CustomUserCreationForm(UserCreationForm):
     email = forms.EmailField(required=True)
@@ -19,12 +21,13 @@ class CustomUserCreationForm(UserCreationForm):
     class Meta(UserCreationForm.Meta):
         model = User
         fields = UserCreationForm.Meta.fields + \
-        ('email', 'first_name', 'last_name', 'is_superuser', 'is_staff')
+            ('email', 'first_name', 'last_name', 'is_superuser', 'is_staff')
+
 
 class UserRegistrationAPIView(APIView):
     def dispatch(self, request, *args, **kwargs):
         return super().dispatch(request, *args, **kwargs)
-    
+
     def post(self, request):
         form = CustomUserCreationForm(request.data)
         if form.is_valid():
@@ -32,6 +35,7 @@ class UserRegistrationAPIView(APIView):
             return Response({'message': 'User registered successfully'})
         else:
             return Response(form.errors, status=400)
+
 
 class UserLoginAPIView(APIView):
     def dispatch(self, request, *args, **kwargs):
@@ -45,29 +49,39 @@ class UserLoginAPIView(APIView):
 
         if user is not None:
             login(request, user)
-            fields_to_include = ['username', 'email', 'first_name', 'last_name']
+            fields_to_include = ['username',
+                                 'email', 'first_name', 'last_name']
             user_dict = model_to_dict(user, fields=fields_to_include)
             return Response({'message': 'User logged in successfully', 'user': user_dict})
 
         return Response({'message': 'User logged in failed'})
 
+
 class UserLogoutAPIView(APIView):
     def dispatch(self, request, *args, **kwargs):
         return super().dispatch(request, *args, **kwargs)
-    
+
     def post(self, request):
         logout(request)
         return Response({'message': 'User logged out successfully'})
-    
+
 # patients view
+
+
 class CreatePatientAPIView(APIView):
     def dispatch(self, request, *args, **kwargs):
         return super().dispatch(request, *args, **kwargs)
-    
+
     def post(self, request):
         try:
             patient_data = request.data.get('patient', {})
             address_data = request.data.get('address', {})
+            contact_email = patient_data.get('contact_email')
+
+            # Check if a user with the same contact_email already exists
+            if Patient.objects.filter(contact_email=contact_email).exists():
+                raise ValidationError({'contact_email':
+                                       'A user with the same email already exists.'})
 
             first_name = patient_data.get('first_name')
             middle_name = patient_data.get('middle_name')
@@ -102,7 +116,8 @@ class CreatePatientAPIView(APIView):
 
             if any(value for value in address_data.values()):
                 # address data is not empty, check if address already exists
-                existing_address = Address.objects.filter(**address_data).first()
+                existing_address = Address.objects.filter(
+                    **address_data).first()
                 if existing_address:
                     address = existing_address
                 else:
@@ -112,7 +127,7 @@ class CreatePatientAPIView(APIView):
             else:
                 # address data is empty, set the address foreign key to null
                 address = None
-            
+
             patient_data = {
                 'first_name': first_name,
                 'middle_name': middle_name,
@@ -132,9 +147,12 @@ class CreatePatientAPIView(APIView):
             patient.save()
 
             return Response({'message': 'Patient created successfully'})
+        except ValidationError as e:
+            return Response({'message': 'Error', 'error': dict(e)}, status=400)
         except Exception as e:
             return Response({'message': 'Error', 'error': str(e)}, status=500)
-        
+
+
 class GetAllPatients(APIView):
     def dispatch(self, request, *args, **kwargs):
         return super().dispatch(request, *args, **kwargs)
@@ -160,11 +178,12 @@ class GetAllPatients(APIView):
             }
             patient_list.append(patient_data)
         return Response({'patients': patient_list})
-    
+
+
 class GetDiabetesAnalysis(APIView):
     def dispatch(self, request, *args, **kwargs):
         return super().dispatch(request, *args, **kwargs)
-    
+
     def get(self, request):
         analysis = DiabetesAnalysis.objects.all()
         analysis_list = []
@@ -187,12 +206,13 @@ class GetDiabetesAnalysis(APIView):
             analysis_list.append(analysis_data)
         return Response({"data": analysis_list})
 
+
 def calculate_age(date_of_birth):
     today = date.today()
     age = today.year - date_of_birth.year
 
     # check if the birthday has already occurred this year
     if today.month < date_of_birth.month or (today.month == date_of_birth.month) and today.day < date_of_birth.day:
-        age -=1
-    
+        age -= 1
+
     return age

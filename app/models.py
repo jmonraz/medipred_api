@@ -15,7 +15,7 @@ class Patient(models.Model):
     first_name = models.CharField(max_length=255, null=False)
     middle_name = models.CharField(max_length=255, null=True)
     last_name = models.CharField(max_length=255, null=False)
-    contact_email = models.EmailField(max_length=255, null=False)
+    contact_email = models.EmailField(max_length=255, null=False, unique=True)
     contact_phone = models.CharField(max_length=50, null=False)
     date_of_birth = models.DateField(null=False)
     age = models.IntegerField(null=True)
