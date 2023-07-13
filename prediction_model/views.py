@@ -33,6 +33,7 @@ class ModelDiabetesPrediction(APIView):
 
             analysis_data = {
                 'glucose': diabetes_data.get('glucose'),
+                'blood_pressure': diabetes_data.get('blood_pressure'),
                 'insulin': diabetes_data.get('insulin'),
                 'bmi': diabetes_data.get('bmi'),
                 'patient_id': patient_data.get('id'),
@@ -43,6 +44,34 @@ class ModelDiabetesPrediction(APIView):
             analysis.save()
 
             return Response({"message": "Analysis successful"})
+        except Exception as e:
+            return Response({'error': str(e)}, status=500)
+
+    def put(self, request, analysis_id):
+        try:
+            analysis = DiabetesAnalysis.objects.get(id=analysis_id)
+            preprocessed_data = preprocess_data(
+                request.data, analysis.patient.id)
+
+            # load the trained model
+            model = joblib.load('./ml_model/diabetes_model.pk1')
+            # make predictions
+            prediction = model.predict(preprocessed_data)
+            outcome = int(prediction[0])
+
+            data = request.data
+            analysis.glucose = data.get('glucose', analysis.glucose)
+            analysis.blood_pressure = data.get(
+                'blood_pressure', analysis.blood_pressure)
+            analysis.insulin = data.get('insulin', analysis.insulin)
+            analysis.bmi = data.get('bmi', analysis.bmi)
+            analysis.outcome = outcome
+
+            analysis.save()
+
+            return Response({"message": "Diabetes analysis update successfully"})
+        except DiabetesAnalysis.DoesNotExist:
+            return Response({"message": "Diabetes analysis not found"}, status=404)
         except Exception as e:
             return Response({'error': str(e)}, status=500)
 

@@ -8,6 +8,7 @@ from django.forms.models import model_to_dict
 from .models import Address, Patient, DiabetesAnalysis
 from datetime import date, datetime
 from django.core.exceptions import ValidationError
+from django.core import serializers
 # Create your views here.
 
 
@@ -152,6 +153,54 @@ class CreatePatientAPIView(APIView):
         except Exception as e:
             return Response({'message': 'Error', 'error': str(e)}, status=500)
 
+    def put(self, request, patient_id):
+        try:
+            patient = Patient.objects.get(id=patient_id)
+
+            data = request.data.get('patient', {})
+            patient.first_name = data.get('first_name', patient.first_name)
+            patient.middle_name = data.get('middle_name', patient.middle_name)
+            patient.last_name = data.get('last_name', patient.last_name)
+            patient.contact_email = data.get(
+                'contact_email', patient.contact_email)
+            patient.contact_phone = data.get(
+                'contact_phone', patient.contact_phone)
+            patient.height = data.get('height', patient.height)
+            patient.weight = data.get('weight', patient.weight)
+            patient.blood_group = data.get('blood_group', patient.blood_group)
+
+            data = request.data.get('address', {})
+            address_data = {
+                'address_1': data.get('address_1'),
+                'address_2': data.get('address_2'),
+                'address_3': data.get('address_3'),
+                'city': data.get('city'),
+                'state': data.get('state'),
+                'postal_code': data.get('postal_code'),
+                'country': data.get('country'),
+            }
+
+            if any(value for value in address_data.values()):
+                # address data is not empty, check if address already exists
+                existing_address = Address.objects.filter(
+                    **address_data).first()
+                if existing_address:
+                    patient.address = existing_address
+                else:
+                    # create a new address object
+                    address = Address.objects.create(**address_data)
+                    address.save()
+                    patient.address = address
+            else:
+                # address data is empty, set the address foreign key to null
+                address = None
+
+            patient.save()
+
+            return Response({'message': 'patient updated'})
+        except Exception as e:
+            return Response({'error', str(e)}, status=400)
+
 
 class GetAllPatients(APIView):
     def dispatch(self, request, *args, **kwargs):
@@ -176,6 +225,10 @@ class GetAllPatients(APIView):
                 'age': patient.age,
                 'gender': patient.gender,
             }
+            if patient.address is not None:
+                patient_data['address'] = patient.address.id
+            else:
+                patient_data['address'] = None
             patient_list.append(patient_data)
         return Response({'patients': patient_list})
 
@@ -191,6 +244,7 @@ class GetDiabetesAnalysis(APIView):
         for a in analysis:
             formatted_datetime = a.last_checked.strftime('%Y-%m-%d %H:%M:%S')
             analysis_data = {
+                'analysis_id': a.id,
                 'id': a.patient.id,
                 'first_name': a.patient.first_name,
                 'last_name': a.patient.last_name,
@@ -205,6 +259,28 @@ class GetDiabetesAnalysis(APIView):
             }
             analysis_list.append(analysis_data)
         return Response({"data": analysis_list})
+
+
+class GetAddressById(APIView):
+    def dispatch(self, request, *args, **kwargs):
+        return super().dispatch(request, *args, **kwargs)
+
+    def get(self, request, address_id):
+        try:
+            address = Address.objects.get(id=address_id)
+            address_data = {
+                'id': address.id,
+                'address_1': address.address_1,
+                'address_2': address.address_2,
+                'address_3': address.address_3,
+                'city': address.city,
+                'state': address.state,
+                'postal_code': address.postal_code,
+                'country': address.country
+            }
+            return Response({"data": address_data})
+        except Exception as e:
+            return Response({"error": str(e)}, status=400)
 
 
 def calculate_age(date_of_birth):

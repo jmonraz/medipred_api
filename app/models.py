@@ -2,6 +2,7 @@ from django.db import models
 
 # Create your models here.
 
+
 class Address(models.Model):
     address_1 = models.CharField(max_length=255)
     address_2 = models.CharField(max_length=255, null=True)
@@ -11,6 +12,7 @@ class Address(models.Model):
     postal_code = models.CharField(max_length=50)
     country = models.CharField(max_length=50)
 
+
 class Patient(models.Model):
     first_name = models.CharField(max_length=255, null=False)
     middle_name = models.CharField(max_length=255, null=True)
@@ -19,12 +21,14 @@ class Patient(models.Model):
     contact_phone = models.CharField(max_length=50, null=False)
     date_of_birth = models.DateField(null=False)
     age = models.IntegerField(null=True)
-    gender = models.CharField(max_length=10 ,null=True)
+    gender = models.CharField(max_length=10, null=True)
     height = models.DecimalField(max_digits=5, decimal_places=2, null=True)
     weight = models.DecimalField(max_digits=5, decimal_places=2, null=True)
     blood_group = models.CharField(max_length=10, null=True)
     address = models.ForeignKey(Address, on_delete=models.SET_NULL, null=True)
     registration_date = models.DateTimeField(auto_now_add=True, null=True)
+    enabled = models.BooleanField(default=True, null=False)
+
 
 class DiabetesAnalysis(models.Model):
     glucose = models.IntegerField(null=False)
