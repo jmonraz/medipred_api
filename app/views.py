@@ -168,6 +168,7 @@ class CreatePatientAPIView(APIView):
             patient.height = data.get('height', patient.height)
             patient.weight = data.get('weight', patient.weight)
             patient.blood_group = data.get('blood_group', patient.blood_group)
+            patient.enabled = data.get('enabled', patient.enabled)
 
             data = request.data.get('address', {})
             address_data = {
@@ -224,6 +225,7 @@ class GetAllPatients(APIView):
                 'blood_group': patient.blood_group,
                 'age': patient.age,
                 'gender': patient.gender,
+                'enabled': patient.enabled,
             }
             if patient.address is not None:
                 patient_data['address'] = patient.address.id
